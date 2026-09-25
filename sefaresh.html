@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فرم ثبت سفارش | لاینر لایت</title>
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/pages/order.css">
+</head>
+<body>
+
+    <div class="page">
+
+        <nav class="top-nav" style="margin-top:0;">
+            <a href="index.html" class="back-btn">
+                <span>➔</span> بازگشت به صفحه اصلی
+            </a>
+        </nav>
+
+        <section class="hero">
+            <h1>فرم ثبت سفارش و محاسبه اتوماتیک قیمت</h1>
+            <p>این فرم سفارش شما را بر اساس تخفیف‌های پلکانی حجم خرید و قوانین متراژ خرد محاسبه می‌کند.</p>
+        </section>
+
+        <div class="grid">
+
+            <!-- ── ستون چپ: محصولات ── -->
+            <section class="card">
+                <div class="card-header">
+                    <h2>محصولات سفارش</h2>
+                </div>
+                <div class="card-body">
+                    <div id="productsContainer" class="products"></div>
+                    <div class="add-product-wrap">
+                        <button class="btn btn-light" id="addProductBtn" type="button"
+                                style="display:none;">+ افزودن محصول جدید</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── ستون راست: خلاصه ── -->
+            <aside class="sidebar">
+                <section class="card summary-box">
+                    <div class="card-header">
+                        <h2>خلاصه نهایی سفارش</h2>
+                    </div>
+                    <div class="card-body">
+
+                        <div class="summary-stat">
+                            <div class="summary-label">تعداد ردیف‌ها</div>
+                            <div class="summary-value" id="totalRows">۰</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-label">مجموع قطعات</div>
+                            <div class="summary-value" id="totalQty">۰</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-label">متراژ کل پروفیل</div>
+                            <div class="summary-value" id="totalMetersUi">۰ متر</div>
+                        </div>
+                        <div class="summary-stat">
+                            <div class="summary-label">مبلغ کل (با اعمال تخفیف)</div>
+                            <div class="summary-value" id="grandTotal">۰ تومان</div>
+                            <div class="summary-sub" id="discountNote">در حال محاسبه...</div>
+                        </div>
+
+                        <div class="actions">
+                            <button class="btn btn-primary" id="previewBtn"
+                                    type="button" style="display:none;">تکمیل و ثبت سفارش</button>
+                            <button class="btn btn-light"   id="recalculateBtn"
+                                    type="button" style="display:none;">بروزرسانی مبلغ</button>
+                        </div>
+
+                        <div class="policy">
+                            <strong>قوانین مهم قیمت‌گذاری:</strong><br>
+                            <span id="rulesList">در حال بارگذاری قوانین...</span>
+                            - قطعات خرد زیر <strong>50 سانت</strong> معادل نیم‌متر محاسبه می‌شوند.<br>
+                            - مازاد سیم خروجی سانتی‌متری <strong id="pol-wire"></strong> محاسبه می‌گردد.<br>
+                            <a href="price.html" target="_blank" class="btn btn-gold"
+                               style="display:block;margin-top:15px;text-align:center;">
+                                مشاهده جدول تخفیف‌های پلکانی
+                            </a>
+                        </div>
+
+                    </div>
+                </section>
+            </aside>
+
+        </div><!-- /.grid -->
+    </div><!-- /.page -->
+
+    <!-- فرم پنهان برای submit -->
+    <form id="orderPostForm" action="save-order.php" method="POST" style="display:none;">
+        <input type="hidden" name="order_json" id="orderJsonInput">
+    </form>
+
+    <!-- Modal پیش‌نمایش -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>پیش‌نمایش و ثبت نهایی</h2>
+                <button class="btn close-btn" id="closeModalBtn" type="button">بستن</button>
+            </div>
+            <div class="modal-body">
+                <div id="previewContent"></div>
+
+                <div class="phone-input-group">
+                    <label for="projectName">نام پروژه (اختیاری):</label>
+                    <input type="text" id="projectName"
+                           placeholder="مثال: ویلای لواسان، پروژه سعادت آباد...">
+
+                    <label for="customerPhone">شماره موبایل (جهت پیگیری سفارش):</label>
+                    <input type="tel" id="customerPhone" dir="ltr"
+                           placeholder="09123456789" required autocomplete="tel" maxlength="11">
+                </div>
+
+                <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="btn btn-primary" id="submitOrderBtn" type="button">
+                        تأیید و ثبت نهایی سفارش
+                    </button>
+                    <button class="btn btn-light" id="cancelSubmitBtn" type="button">
+                        انصراف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts — به ترتیب -->
+    <script>
+        // لود config → utils → order با cache-buster
+        const _v = Date.now();
+        const _load = (src, cb) => {
+            const s = document.createElement('script');
+            s.src = src + '?v=' + _v;
+            if (cb) s.onload = cb;
+            document.body.appendChild(s);
+        };
+
+        _load('assets/js/config.js', () => {
+            // پر کردن قوانین
+            let rules = '';
+            Object.values(PRODUCTS_DATA ?? {}).forEach(p => {
+                rules += `- مدل <strong>${p.title}</strong>: متری <strong>${Number(p.price).toLocaleString('fa-IR')} تومان</strong><br>`;
+            });
+            document.getElementById('rulesList').innerHTML = rules;
+
+            const wireRate = PRICING_RULES?.EXTRA_WIRE_PER_CM ?? 400;
+            document.getElementById('pol-wire').textContent =
+                Number(wireRate).toLocaleString('fa-IR') + ' تومان';
+
+            _load('assets/js/utils.js', () => _load('assets/js/order.js'));
+        });
+    </script>
+
+</body>
+</html>

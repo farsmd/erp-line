@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لیست قیمت و شرایط فروش | لاینر لایت</title>
+    <link rel="stylesheet" href="assets/css/base.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <style>
+        body { padding-bottom: 40px; }
+
+        .sticky-header {
+            background: var(--card);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 30px;
+        }
+        .sticky-header-inner { max-width: 800px; margin: 0 auto; }
+
+        .price-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--card);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+        }
+
+        .price-header {
+            text-align: center;
+            margin-bottom: 35px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 20px;
+        }
+        .price-header h2 { margin: 0; }
+        .price-header p  { color: #888; font-size: 13px; text-transform: uppercase; }
+
+        .section-title {
+            font-size: 16px;
+            color: #111;
+            border-right: 4px solid var(--gold);
+            padding-right: 10px;
+            margin-top: 35px;
+        }
+
+        .minimal-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .minimal-table th,
+        .minimal-table td {
+            padding: 14px 10px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .minimal-table th         { background: #fafafa; font-weight: bold; color: #111; }
+        .minimal-table td:first-child { text-align: right; font-weight: bold; }
+
+        .table-responsive { overflow-x: auto; }
+
+        #base-prices { font-size: 14px; color: #555; padding-right: 20px; }
+        #base-prices li { margin-bottom: 6px; }
+    </style>
+</head>
+<body>
+
+    <div class="sticky-header">
+        <div class="sticky-header-inner">
+            <a href="index.html" class="back-btn">
+                <span style="font-size:18px;">➔</span> بازگشت به صفحه اصلی سایت
+            </a>
+        </div>
+    </div>
+
+    <div class="price-container">
+
+        <div class="price-header">
+            <h2>پیشنهاد همکاری و لیست قیمت</h2>
+            <p>Liner Light Exclusive Offer</p>
+        </div>
+
+        <h3 class="section-title">قیمت پایه پروفیل‌ها (سفارشات خرد)</h3>
+        <ul id="base-prices"><!-- از JS پر می‌شود --></ul>
+
+        <h3 class="section-title">تخفیف‌های پلکانی و قیمت نهایی (تومان)</h3>
+        <p style="font-size:13px;color:#777;">
+            قیمت‌ها به ازای متر طول و برای محصول آماده نصب (مونتاژ با درپوش و سیم) محاسبه شده‌اند.
+        </p>
+        <div class="table-responsive">
+            <table class="minimal-table">
+                <thead id="tiers-head"></thead>
+                <tbody id="tiers-body"></tbody>
+            </table>
+        </div>
+
+        <div class="offer-box">
+            <h4 style="color:var(--gold-dark);margin:0 0 10px;">🎁 آفر ویژه پیش‌خرید</h4>
+            <p style="margin:0;font-size:14px;color:#5a4a2e;">
+                در صورت پیش‌خرید نقدی بسته‌های بالا، بالاترین ردیف تخفیف همکاری برای شما ثبت شده
+                و قیمت در برابر تورم تثبیت می‌گردد. متراژ به عنوان اعتبار در حساب شما ذخیره می‌شود.
+            </p>
+        </div>
+
+        <h3 class="section-title">شرایط ثبت سفارش و پرداخت</h3>
+        <p style="font-size:14px;color:#555;">
+            برای تسریع در روند تأمین متریال، پیش‌فاکتورها منحصراً بر مبنای
+            <strong>تسویه نقدی</strong> تنظیم شده‌اند. در حال حاضر امکان فروش اعتباری مقدور نمی‌باشد.
+        </p>
+
+        <div class="alert-box">
+            <strong>تبصره قطعات خرد:</strong><br>
+            حداقل طول محاسباتی برای قطعات مستقل زیر <span id="pol-min"></span> سانت،
+            معادل نیم متر لحاظ می‌گردد.
+        </div>
+
+    </div>
+
+    <script>
+        const s = document.createElement('script');
+        s.src = 'assets/js/config.js?v=' + Date.now();
+        s.onload = () => {
+            const s2 = document.createElement('script');
+            s2.src = 'assets/js/utils.js?v=' + Date.now();
+            s2.onload = renderPriceTable;
+            document.body.appendChild(s2);
+        };
+        document.body.appendChild(s);
+
+        function renderPriceTable() {
+            if (typeof PRODUCTS_DATA === 'undefined') return;
+
+            // قیمت‌های پایه
+            document.getElementById('base-prices').innerHTML =
+                Object.values(PRODUCTS_DATA)
+                    .map(p => `<li><strong>${p.title}:</strong> متری ${formatPrice(p.price)}</li>`)
+                    .join('');
+
+            document.getElementById('pol-min').textContent =
+                PRICING_RULES?.MIN_LENGTH_CM ?? 50;
+
+            const products = Object.values(PRODUCTS_DATA);
+
+            // هدر جدول
+            document.getElementById('tiers-head').innerHTML =
+                `<tr>
+                    <th>حجم سفارش در ماه</th>
+                    <th>تخفیف</th>
+                    ${products.map(p => `<th>قیمت ${p.title}</th>`).join('')}
+                </tr>`;
+
+            // ردیف‌های جدول
+            let rows = `
+                <tr>
+                    <td>زیر ${TIERS[0].min} متر (خرد)</td>
+                    <td>۰٪</td>
+                    ${products.map(p => `<td>${formatPrice(p.price)}</td>`).join('')}
+                </tr>`;
+
+            for (const tier of TIERS) {
+                const label = tier.max > 5000
+                    ? `بالای ${tier.min} متر`
+                    : `از ${tier.min} تا ${tier.max} متر`;
+
+                const multiplier = 1 - (tier.discount / 100);
+                const isTop      = tier.max > 5000;
+
+                rows += `
+                    <tr${isTop ? ' style="background:var(--gold-bg);font-weight:bold;"' : ''}>
+                        <td>${label}</td>
+                        <td style="color:var(--gold-dark);font-weight:bold;">${tier.discount}٪</td>
+                        ${products.map(p => `<td>${formatPrice(p.price * multiplier)}</td>`).join('')}
+                    </tr>`;
+            }
+
+            document.getElementById('tiers-body').innerHTML = rows;
+        }
+    </script>
+
+</body>
+</html>
