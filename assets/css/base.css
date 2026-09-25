@@ -1,0 +1,115 @@
+/* ─────────────────────────────────────────
+   base.css — متغیرها، ریست و لایه‌بندی پایه
+   ───────────────────────────────────────── */
+
+/* Design Tokens */
+:root {
+    --bg:           #f4f7fb;
+    --card:         #ffffff;
+    --line:         #e5e7eb;
+    --text:         #0f172a;
+    --muted:        #64748b;
+    --primary:      #2563eb;
+    --primary-dark: #1d4ed8;
+    --gold:         #c59b4e;
+    --gold-dark:    #b3883c;
+    --gold-bg:      #fcf9f2;
+    --gold-border:  #f4ead6;
+    --danger:       #dc2626;
+    --success:      #16a34a;
+    --shadow:       0 10px 30px rgba(15, 23, 42, .08);
+    --radius:       18px;
+}
+
+/* Reset */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background:
+        radial-gradient(circle at top right, #dbeafe 0%, transparent 30%),
+        radial-gradient(circle at top left,  #e0f2fe 0%, transparent 25%),
+        var(--bg);
+    font-family: 'Vazirmatn', Tahoma, Arial, sans-serif;
+    color: var(--text);
+    line-height: 1.6;
+}
+
+/* فونت Vazirmatn */
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("/fonts/Vazirmatn-Regular.woff2") format("woff2"),
+         url("/fonts/Vazirmatn-Regular.woff")  format("woff");
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("/fonts/Vazirmatn-Medium.woff2") format("woff2"),
+         url("/fonts/Vazirmatn-Medium.woff")  format("woff");
+    font-weight: 500;
+    font-display: swap;
+}
+@font-face {
+    font-family: "Vazirmatn";
+    src: url("/fonts/Vazirmatn-Bold.woff2") format("woff2"),
+         url("/fonts/Vazirmatn-Bold.woff")  format("woff");
+    font-weight: 700;
+    font-display: swap;
+}
+
+/* Layout */
+.page {
+    max-width: 1100px;
+    margin: 32px auto;
+    padding: 0 16px;
+}
+
+/* Hero */
+.hero {
+    background: linear-gradient(135deg, #0f172a, #1e3a8a);
+    color: #fff;
+    border-radius: 24px;
+    padding: 36px 32px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+}
+.hero h1 {
+    font-size: clamp(22px, 4vw, 34px);
+    margin-bottom: 12px;
+}
+.hero p {
+    color: rgba(255, 255, 255, .85);
+    font-size: 14px;
+    line-height: 1.9;
+}
+
+/* Two-column grid */
+.grid {
+    display: grid;
+    grid-template-columns: 1.3fr .7fr;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Sticky sidebar */
+.sidebar {
+    position: sticky;
+    top: 16px;
+}
+
+/* ─────────────────────────────────────────
+   Responsive
+   ───────────────────────────────────────── */
+@media (max-width: 900px) {
+    .grid    { grid-template-columns: 1fr; }
+    .sidebar { position: static; }
+}
+
+@media (max-width: 640px) {
+    .page { margin: 16px auto; }
+    .hero { padding: 18px; border-radius: 18px; }
+}
