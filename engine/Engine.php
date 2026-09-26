@@ -4,7 +4,7 @@
  * نسخه ۲: پشتیبانی از تنظیمات کاستم، فیلدهای سفارش سفارشی
  */
 class LinerLightEngine {
-    require_once __DIR__ . '/engine/session-config.php';
+   
     private PDO $pdo;
     private string $dbFile;
 
