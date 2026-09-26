@@ -20,17 +20,24 @@ session_start();
 // ─────────────────────────────────────────
 
 function requireAdmin() {
+    // ۱. بررسی نشست مدیریتی پنل اصلی
+    if (isset($_SESSION['admin_logged_in'])) {
+        $_SESSION['updater_admin'] = true;
+        return;
+    }
+    // ۲. بررسی دسترسی مستقیم به updater
     if (!isset($_SESSION['updater_admin'])) {
         http_response_code(401);
-        die(json_encode(['error' => 'دسترسی رد شد']));
+        header('Content-Type: application/json; charset=utf-8');
+        die(json_encode(['error' => 'دسترسی رد شد'], JSON_UNESCAPED_UNICODE));
     }
 }
 
 // ─────────────────────────────────────────
-// ورود مدیر
+// ورود مدیر (فقط مستقل)
 // ─────────────────────────────────────────
 
-if ($_GET['action'] === 'login' && $_POST) {
+if ($_GET['action'] === 'login' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
     $saved = file_get_contents('.admin_pass') ?: 'far1230010';
     
@@ -60,8 +67,11 @@ if ($_GET['action'] === 'status') {
     
     try {
         $latestCommit = fetchLatestCommit($config);
-        $currentCommit = file_get_contents('.commit_hash') ?: 'unknown';
+        if (!$latestCommit) {
+            throw new Exception('پاسخ GitHub نامعتبر است');
+        }
         
+        $currentCommit = file_get_contents('.commit_hash') ?: 'unknown';
         $updateAvailable = ($latestCommit['sha'] !== $currentCommit);
         
         echo json_encode([
@@ -72,10 +82,10 @@ if ($_GET['action'] === 'status') {
             'update_available' => $updateAvailable,
             'latest_message' => $latestCommit['commit']['message'] ?? '',
             'last_check' => date('Y-m-d H:i:s'),
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['error' => $e->getMessage()]);
+        echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
     }
     exit;
 }
@@ -93,6 +103,10 @@ if ($_POST['action'] === 'update') {
         // ۱. گرفتن اطلاعات جدید
         $latestCommit = fetchLatestCommit($config);
         $files = fetchRepoFiles($config);
+        
+        if (!$latestCommit || !$files) {
+            throw new Exception('دریافت اطلاعات GitHub ناموفق');
+        }
         
         // ۲. ایجاد backup
         $backupName = 'backup_' . date('Y-m-d_H-i-s');
@@ -123,10 +137,10 @@ if ($_POST['action'] === 'update') {
             'failed_files' => count($failed),
             'backup_name' => $backupName,
             'failed' => $failed,
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['error' => $e->getMessage()]);
+        echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
     }
     exit;
 }
@@ -158,10 +172,10 @@ if ($_POST['action'] === 'restore' && $_POST['backup_name']) {
         echo json_encode([
             'status' => 'success',
             'message' => 'پروژه از backup بازگردانی شد',
-        ]);
+        ], JSON_UNESCAPED_UNICODE);
     } catch (Exception $e) {
         http_response_code(500);
-        echo json_encode(['error' => $e->getMessage()]);
+        echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
     }
     exit;
 }
@@ -175,25 +189,22 @@ if ($_GET['action'] === 'backups') {
     
     header('Content-Type: application/json; charset=utf-8');
     
-    if (!is_dir($config['backup_dir'])) {
-        echo json_encode(['backups' => []]);
-        exit;
-    }
-    
     $backups = [];
-    foreach (scandir($config['backup_dir']) as $file) {
-        if (preg_match('/^backup_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.tar\.gz$/', $file)) {
-            $backups[] = [
-                'name' => str_replace('.tar.gz', '', $file),
-                'size' => formatBytes(filesize($config['backup_dir'] . '/' . $file)),
-                'date' => filemtime($config['backup_dir'] . '/' . $file),
-            ];
+    if (is_dir($config['backup_dir'])) {
+        foreach (scandir($config['backup_dir']) as $file) {
+            if (preg_match('/^backup_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.tar\.gz$/', $file)) {
+                $backups[] = [
+                    'name' => str_replace('.tar.gz', '', $file),
+                    'size' => formatBytes(filesize($config['backup_dir'] . '/' . $file)),
+                    'date' => filemtime($config['backup_dir'] . '/' . $file),
+                ];
+            }
         }
     }
     
     rsort($backups);
     
-    echo json_encode(['backups' => $backups]);
+    echo json_encode(['backups' => $backups], JSON_UNESCAPED_UNICODE);
     exit;
 }
 
@@ -216,7 +227,11 @@ function fetchLatestCommit($config) {
         throw new Exception('خطا در اتصال به GitHub API');
     }
     
-    return json_decode($response, true);
+    $decoded = json_decode($response, true);
+    if (!$decoded || json_last_error() !== JSON_ERROR_NONE) {
+        return null;
+    }
+    return $decoded;
 }
 
 function fetchRepoFiles($config) {
@@ -235,6 +250,9 @@ function fetchRepoFiles($config) {
     }
     
     $data = json_decode($response, true);
+    if (!$data || json_last_error() !== JSON_ERROR_NONE) {
+        return null;
+    }
     
     // فقط بلاب‌ها (فایل‌ها) و نه درخت‌ها
     return array_filter($data['tree'] ?? [], fn($item) => $item['type'] === 'blob');
@@ -298,7 +316,7 @@ function formatBytes($bytes) {
 // صفحه HTML
 // ─────────────────────────────────────────
 
-if (!isset($_SESSION['updater_admin'])) {
+if (!isset($_SESSION['updater_admin']) && !isset($_SESSION['admin_logged_in'])) {
 ?>
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -485,8 +503,14 @@ if (!isset($_SESSION['updater_admin'])) {
             const btn = document.getElementById('btnCheck');
             btn.disabled = true;
             fetch('updater.php?action=status')
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw new Error('خطا در دریافت وضعیت');
+                    return r.json();
+                })
                 .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
                     const html = `
                         <div class="status-row">
                             <span class="status-label">نسخه فعلی</span>
@@ -516,7 +540,7 @@ if (!isset($_SESSION['updater_admin'])) {
                     document.getElementById('btnCheck').disabled = false;
                 })
                 .catch(e => {
-                    document.getElementById('messages').innerHTML = `<div class="error">❌ خطا: ${e}</div>`;
+                    document.getElementById('messages').innerHTML = `<div class="error">❌ خطا: ${e.message}</div>`;
                     btn.disabled = false;
                 });
         }
@@ -534,7 +558,10 @@ if (!isset($_SESSION['updater_admin'])) {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'action=update'
             })
-            .then(r => r.json())
+            .then(r => {
+                if (!r.ok) throw new Error('خطا در درخواست');
+                return r.json();
+            })
             .then(data => {
                 if (data.status === 'success') {
                     msgDiv.innerHTML = `
@@ -551,16 +578,19 @@ if (!isset($_SESSION['updater_admin'])) {
                 }
             })
             .catch(e => {
-                msgDiv.innerHTML = `<div class="error">❌ خطا: ${e}</div>`;
+                msgDiv.innerHTML = `<div class="error">❌ خطا: ${e.message}</div>`;
                 btn.disabled = false;
             });
         }
 
         function loadBackups() {
             fetch('updater.php?action=backups')
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) throw new Error('خطا در دریافت لیست');
+                    return r.json();
+                })
                 .then(data => {
-                    if (!data.backups.length) {
+                    if (!data.backups || !data.backups.length) {
                         document.getElementById('backupsList').innerHTML = '<p style="color:#64748b;">هیچ backup ثبت نشده‌ای وجود ندارد</p>';
                         return;
                     }
@@ -577,6 +607,9 @@ if (!isset($_SESSION['updater_admin'])) {
                         `;
                     });
                     document.getElementById('backupsList').innerHTML = html;
+                })
+                .catch(e => {
+                    document.getElementById('backupsList').innerHTML = `<div class="error">خطا: ${e.message}</div>`;
                 });
         }
 
@@ -596,7 +629,8 @@ if (!isset($_SESSION['updater_admin'])) {
                 } else {
                     alert('❌ خطا: ' + data.error);
                 }
-            });
+            })
+            .catch(e => alert('❌ خطا: ' + e.message));
         }
 
         // بارگذاری اولیه
