@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>پنل مدیریت | لاینر لایت</title>
+<link rel="stylesheet" href="assets/css/base.css">
+<link rel="stylesheet" href="assets/css/pages/admin.css">
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="loginScreen" style="display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--sb-bg)">
+  <div style="background:#1e293b;padding:40px;border-radius:20px;width:min(360px,90%);text-align:center;border:1px solid rgba(255,255,255,.08)">
+    <div style="font-size:36px;font-weight:900;background:linear-gradient(135deg,#c59b4e,#f5d98e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:6px">LL</div>
+    <div style="color:#94a3b8;font-size:13px;margin-bottom:28px">پنل مدیریت لاینر لایت</div>
+    <input id="loginPass" type="password" placeholder="رمز عبور" dir="ltr"
+      style="width:100%;padding:13px 16px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.05);color:#fff;font-size:15px;outline:none;margin-bottom:14px;font-family:inherit">
+    <button onclick="doLogin()" class="a-btn a-btn-gold" style="width:100%;justify-content:center">ورود به پنل</button>
+    <div id="loginErr" style="color:#f87171;font-size:13px;margin-top:12px;display:none"></div>
+  </div>
+</div>
+
+<!-- ADMIN SHELL -->
+<div class="admin-shell" id="adminShell" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <a href="index.html" class="sb-brand" target="_blank">
+      <div class="sb-brand-icon">LL</div>
+      <div>
+        <span class="sb-brand-text" id="sbBrandName">لاینر لایت</span>
+        <span class="sb-brand-sub">ERP Dashboard</span>
+      </div>
+    </a>
+
+    <nav class="sb-nav">
+      <div class="sb-group">
+        <div class="sb-group-label">داشبورد</div>
+        <div class="sb-item active" onclick="switchPanel('dashboard')">
+          <span class="sb-icon">📊</span><span class="sb-label">خلاصه عملکرد</span>
+        </div>
+      </div>
+
+      <div class="sb-group">
+        <div class="sb-group-label">سفارشات</div>
+        <div class="sb-item" onclick="switchPanel('orders')">
+          <span class="sb-icon">📦</span><span class="sb-label">مدیریت سفارشات</span>
+          <span class="sb-badge" id="pendingBadge">0</span>
+        </div>
+        <div class="sb-item" onclick="switchPanel('customers')">
+          <span class="sb-icon">👥</span><span class="sb-label">مشتریان</span>
+        </div>
+      </div>
+
+      <div class="sb-group">
+        <div class="sb-group-label">موجودی</div>
+        <div class="sb-item" onclick="switchPanel('inventory')">
+          <span class="sb-icon">🏭</span><span class="sb-label">انبار</span>
+        </div>
+      </div>
+
+      <div class="sb-group">
+        <div class="sb-group-label">تنظیمات ERP</div>
+        <div class="sb-item" onclick="switchPanel('site_settings')">
+          <span class="sb-icon">🎨</span><span class="sb-label">ظاهر و برند</span>
+        </div>
+        <div class="sb-item" onclick="switchPanel('pricing_settings')">
+          <span class="sb-icon">💰</span><span class="sb-label">قیمت‌گذاری</span>
+        </div>
+        <div class="sb-item" onclick="switchPanel('products_settings')">
+          <span class="sb-icon">📐</span><span class="sb-label">محصولات</span>
+        </div>
+        <div class="sb-item" onclick="switchPanel('bom_settings')">
+          <span class="sb-icon">🔧</span><span class="sb-label">BOM و انبار</span>
+        </div>
+        <div class="sb-item" onclick="switchPanel('flow_settings')">
+          <span class="sb-icon">🔄</span><span class="sb-label">جریان سفارش</span>
+        </div>
+        <div class="sb-item" onclick="switchPanel('field_builder')">
+          <span class="sb-icon">🧩</span><span class="sb-label">فیلدهای سفارش</span>
+        </div>
+        <div class="sb-item" onclick="switchPanel('import_export')">
+          <span class="sb-icon">💾</span><span class="sb-label">Export / Import</span>
+        </div>
+      </div>
+
+      <div class="sb-group">
+        <div class="sb-group-label">سیستم</div>
+        <div class="sb-item" onclick="switchPanel('logs')">
+          <span class="sb-icon">📋</span><span class="sb-label">لاگ سیستم</span>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sb-footer">
+      <button class="sb-collapse-btn" id="collapseBtn" onclick="toggleSidebar()">
+        <span class="sb-collapse-icon">◀</span>
+        <span class="sb-label">جمع کردن منو</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <div class="topbar-title" id="topbarTitle">داشبورد</div>
+      <div class="topbar-actions">
+        <a href="sefaresh.html" target="_blank" class="a-btn a-btn-ghost a-btn-sm">سایت ↗</a>
+        <button class="a-btn a-btn-danger a-btn-sm" onclick="doLogout()">خروج</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ════ DASHBOARD ════ -->
+      <div class="admin-panel active" id="panel-dashboard">
+        <div class="a-grid-4" id="statsGrid" style="margin-bottom:24px"></div>
+        <div class="a-grid-2">
+          <div class="a-card">
+            <div class="a-card-header"><h3>آخرین سفارشات</h3></div>
+            <div class="a-card-body a-table-wrap">
+              <table class="a-table" id="recentOrdersTable">
+                <thead><tr><th>کد</th><th>مشتری</th><th>مبلغ</th><th>وضعیت</th></tr></thead>
+                <tbody id="recentOrdersTbody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="a-card">
+            <div class="a-card-header"><h3>اقلام زیر حداقل موجودی</h3></div>
+            <div class="a-card-body" id="lowStockList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ ORDERS ════ -->
+      <div class="admin-panel" id="panel-orders">
+        <div class="a-card">
+          <div class="a-card-header">
+            <h3>مدیریت سفارشات</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <select id="orderFilter" class="a-btn a-btn-ghost a-btn-sm" style="padding:7px 12px;font-size:12px" onchange="renderOrders()">
+                <option value="">همه وضعیت‌ها</option>
+              </select>
+              <button class="a-btn a-btn-gold a-btn-sm" onclick="printDoc('purchase_order','')">🖨 خرید تأمین‌کننده</button>
+            </div>
+          </div>
+          <div class="a-card-body a-table-wrap">
+            <table class="a-table"><thead>
+              <tr><th>کد</th><th>پروژه</th><th>تلفن</th><th>قطعات</th><th>مبلغ</th><th>وضعیت</th><th>عملیات</th></tr>
+            </thead><tbody id="ordersTableBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ CUSTOMERS ════ -->
+      <div class="admin-panel" id="panel-customers">
+        <div class="a-card">
+          <div class="a-card-header"><h3>مشتریان</h3></div>
+          <div class="a-card-body a-table-wrap">
+            <table class="a-table"><thead>
+              <tr><th>تلفن</th><th>نام</th><th>دسته</th><th>کیف پول</th><th>خرید کل</th><th>عملیات</th></tr>
+            </thead><tbody id="customersBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ INVENTORY ════ -->
+      <div class="admin-panel" id="panel-inventory">
+        <div class="a-card">
+          <div class="a-card-header"><h3>مدیریت انبار</h3></div>
+          <div class="a-card-body a-table-wrap">
+            <table class="a-table"><thead>
+              <tr><th>آیتم</th><th>نام</th><th>واحد</th><th>موجودی</th><th>حداقل</th><th>محل</th><th>تغییر</th></tr>
+            </thead><tbody id="inventoryBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ SITE SETTINGS ════ -->
+      <div class="admin-panel" id="panel-site_settings">
+        <div class="a-grid-2" style="align-items:start">
+          <div>
+            <div class="a-card">
+              <div class="a-card-header"><h3>اطلاعات برند</h3></div>
+              <div class="a-card-body">
+                <div class="a-field"><label>نام برند</label><input type="text" id="cfg_brand_name" placeholder="لاینر لایت"></div>
+                <div class="a-field"><label>شماره تماس</label><input type="tel" id="cfg_contact" dir="ltr" placeholder="09..."></div>
+                <div class="a-field"><label>متن فوتر</label><input type="text" id="cfg_footer"></div>
+                <div class="a-field"><label>آدرس لوگو (اختیاری)</label><input type="text" id="cfg_logo" placeholder="/images/logo.png"></div>
+              </div>
+            </div>
+            <div class="a-card">
+              <div class="a-card-header"><h3>🎨 رنگ‌های سایت</h3></div>
+              <div class="a-card-body">
+                <div class="color-row"><label>رنگ اصلی (Primary)</label><input type="color" id="color_primary" value="#2563eb" oninput="updateColorPreview()"></div>
+                <div class="color-row"><label>رنگ طلایی (Gold)</label><input type="color" id="color_gold" value="#c59b4e" oninput="updateColorPreview()"></div>
+                <div class="color-row"><label>پس‌زمینه</label><input type="color" id="color_bg" value="#f4f7fb" oninput="updateColorPreview()"></div>
+                <div class="color-row"><label>متن اصلی</label><input type="color" id="color_text" value="#0f172a" oninput="updateColorPreview()"></div>
+                <div class="color-row"><label>موفقیت (Success)</label><input type="color" id="color_success" value="#16a34a" oninput="updateColorPreview()"></div>
+                <div class="color-row"><label>خطا (Danger)</label><input type="color" id="color_danger" value="#dc2626" oninput="updateColorPreview()"></div>
+                <div class="a-divider"></div>
+                <div class="color-row"><label>رنگ Sidebar</label><input type="color" id="color_sidebar" value="#0f172a" oninput="updateColorPreview()"></div>
+                <div class="color-row"><label>Accent Sidebar</label><input type="color" id="color_accent" value="#c59b4e" oninput="updateColorPreview()"></div>
+              </div>
+            </div>
+            <button class="a-btn a-btn-primary" onclick="saveSiteSettings()">💾 ذخیره تنظیمات برند</button>
+          </div>
+          <!-- Live Preview -->
+          <div class="live-preview">
+            <div class="live-preview-header">پیش‌نمایش زنده رنگ‌ها</div>
+            <div class="live-preview-body">
+              <div id="colorPreview" style="display:flex;flex-direction:column;gap:10px">
+                <div id="prev_primary"  style="padding:12px;border-radius:8px;color:#fff;font-weight:700;font-size:13px">Primary Button</div>
+                <div id="prev_gold"     style="padding:12px;border-radius:8px;color:#fff;font-weight:700;font-size:13px">Gold / Accent</div>
+                <div id="prev_success"  style="padding:12px;border-radius:8px;color:#fff;font-weight:700;font-size:13px">Success</div>
+                <div id="prev_danger"   style="padding:12px;border-radius:8px;color:#fff;font-weight:700;font-size:13px">Danger</div>
+                <div id="prev_bg"       style="padding:12px;border-radius:8px;border:1px solid #ddd;font-size:13px">Background Color</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ PRICING SETTINGS ════ -->
+      <div class="admin-panel" id="panel-pricing_settings">
+        <div class="a-card" style="margin-bottom:20px">
+          <div class="a-card-header"><h3>قوانین پایه قیمت‌گذاری</h3></div>
+          <div class="a-card-body">
+            <div class="a-grid-3">
+              <div class="a-field"><label>سیم رایگان (سانتی‌متر)</label><input type="number" id="cfg_free_wire" min="0"></div>
+              <div class="a-field"><label>هزینه سیم اضافه (تومان/سانت)</label><input type="number" id="cfg_wire_rate" min="0"></div>
+              <div class="a-field"><label>حداقل طول محاسباتی (سانت)</label><input type="number" id="cfg_min_len" min="1"></div>
+            </div>
+          </div>
+        </div>
+        <div class="a-card">
+          <div class="a-card-header">
+            <h3>ردیف‌های تخفیف پلکانی</h3>
+            <button class="a-btn a-btn-gold a-btn-sm" onclick="addTierRow()">+ افزودن ردیف</button>
+          </div>
+          <div class="a-card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;font-size:11px;font-weight:700;color:var(--c-muted);padding:0 4px 8px;text-transform:uppercase">
+              <span>از (متر)</span><span>تا (متر)</span><span>تخفیف (%)</span><span></span>
+            </div>
+            <div id="tiersContainer"></div>
+          </div>
+        </div>
+        <div style="margin-top:16px">
+          <button class="a-btn a-btn-primary" onclick="savePricingSettings()">💾 ذخیره قیمت‌گذاری</button>
+        </div>
+      </div>
+
+      <!-- ════ PRODUCTS SETTINGS ════ -->
+      <div class="admin-panel" id="panel-products_settings">
+        <div class="a-card">
+          <div class="a-card-header">
+            <h3>محصولات و مدل‌ها</h3>
+            <button class="a-btn a-btn-gold a-btn-sm" onclick="addProductRow()">+ محصول جدید</button>
+          </div>
+          <div class="a-card-body" id="productsSettingsContainer"></div>
+          <div class="a-card-body" style="border-top:1px solid var(--c-border)">
+            <button class="a-btn a-btn-primary" onclick="saveProductsSettings()">💾 ذخیره محصولات</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ BOM + QUEUE ════ -->
+      <div class="admin-panel" id="panel-bom_settings">
+        <div class="a-grid-2" style="align-items:start">
+          <div class="a-card">
+            <div class="a-card-header">
+              <h3>قوانین BOM</h3>
+              <button class="a-btn a-btn-gold a-btn-sm" onclick="addBomRow()">+ قانون جدید</button>
+            </div>
+            <div class="a-card-body" id="bomContainer"></div>
+            <div class="a-card-body" style="border-top:1px solid var(--c-border)">
+              <button class="a-btn a-btn-primary" onclick="saveBomSettings()">💾 ذخیره BOM</button>
+            </div>
+          </div>
+          <div class="a-card">
+            <div class="a-card-header"><h3>صف تولید و ظرفیت</h3></div>
+            <div class="a-card-body">
+              <div class="a-field"><label>ظرفیت روزانه (شاخه)</label><input type="number" id="cfg_daily_cap" min="1"></div>
+              <div class="a-field"><label>روزهای بافر</label><input type="number" id="cfg_buffer_days" min="0"></div>
+              <div class="a-field"><label>درصد دورریز (%)</label><input type="number" id="cfg_wastage" min="0" max="30"></div>
+              <button class="a-btn a-btn-primary" onclick="saveQueueSettings()">💾 ذخیره صف</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ ORDER FLOW ════ -->
+      <div class="admin-panel" id="panel-flow_settings">
+        <div class="a-card">
+          <div class="a-card-header">
+            <h3>مراحل جریان سفارش</h3>
+            <button class="a-btn a-btn-gold a-btn-sm" onclick="addFlowStatus()">+ مرحله جدید</button>
+          </div>
+          <div class="a-card-body">
+            <p style="font-size:13px;color:var(--c-muted);margin-bottom:16px">ترتیب مراحل با drag & drop قابل تنظیم است.</p>
+            <div id="flowStatusContainer"></div>
+            <div class="a-divider"></div>
+            <label class="a-toggle">
+              <input type="checkbox" id="cfg_require_phone">
+              <div class="a-toggle-track"><div class="a-toggle-thumb"></div></div>
+              <span class="a-toggle-label">دریافت شماره موبایل الزامی باشد</span>
+            </label>
+            <div style="margin-top:16px">
+              <button class="a-btn a-btn-primary" onclick="saveFlowSettings()">💾 ذخیره جریان سفارش</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ FIELD BUILDER ════ -->
+      <div class="admin-panel" id="panel-field_builder">
+        <div class="a-grid-2" style="align-items:start">
+          <div class="a-card">
+            <div class="a-card-header">
+              <h3>🧩 فیلدهای سفارشی</h3>
+              <button class="a-btn a-btn-gold a-btn-sm" onclick="addCustomField()">+ فیلد جدید</button>
+            </div>
+            <div class="a-card-body">
+              <p style="font-size:12px;color:var(--c-muted);margin-bottom:16px">
+                فیلدهایی که اینجا اضافه می‌کنید در فرم ثبت سفارش مشتریان نمایش داده می‌شود.
+              </p>
+              <div id="fieldBuilderContainer"></div>
+              <div style="margin-top:16px">
+                <button class="a-btn a-btn-primary" onclick="saveCustomFields()">💾 ذخیره فیلدها</button>
+              </div>
+            </div>
+          </div>
+          <div class="a-card">
+            <div class="a-card-header"><h3>پیش‌نمایش فرم</h3></div>
+            <div class="a-card-body" id="fieldPreview">
+              <p style="color:var(--c-muted);font-size:13px">فیلدهای اضافه شده اینجا نمایش داده می‌شوند.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ IMPORT / EXPORT ════ -->
+      <div class="admin-panel" id="panel-import_export">
+        <div class="a-grid-2">
+          <div class="export-box">
+            <h4>📤 Export تنظیمات</h4>
+            <p>تمام تنظیمات ERP (محصولات، قیمت‌ها، BOM، فیلدهای سفارش، رنگ‌ها) را در یک فایل JSON دانلود کنید.</p>
+            <button class="a-btn a-btn-gold" onclick="doExport()">دانلود فایل تنظیمات</button>
+          </div>
+          <div class="a-card">
+            <div class="a-card-header"><h3>📥 Import تنظیمات</h3></div>
+            <div class="a-card-body">
+              <p style="font-size:13px;color:var(--c-muted);margin-bottom:16px">
+                فایل JSON که قبلاً export کرده‌اید را آپلود کنید. تمام تنظیمات فعلی جایگزین می‌شوند.
+              </p>
+              <div class="a-field">
+                <label>انتخاب فایل JSON</label>
+                <input type="file" id="importFile" accept=".json">
+              </div>
+              <button class="a-btn a-btn-danger" onclick="doImport()">⚠️ Import و جایگزینی</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════ LOGS ════ -->
+      <div class="admin-panel" id="panel-logs">
+        <div class="a-card">
+          <div class="a-card-header"><h3>لاگ سیستم</h3><button class="a-btn a-btn-ghost a-btn-sm" onclick="loadAdminData()">🔄 بروزرسانی</button></div>
+          <div class="a-card-body a-table-wrap">
+            <table class="a-table"><thead>
+              <tr><th>نوع</th><th>IP</th><th>جزئیات</th><th>زمان</th></tr>
+            </thead><tbody id="logsBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /admin-content -->
+  </main>
+</div><!-- /admin-shell -->
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let STATE = { orders:[], products:[], bomRules:[], customFields:[], allSettings:{}, customers:[], inventory:[], logs:[] };
+const API = 'api/api.php';
+
+// ════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════
+async function doLogin() {
+  const pass = document.getElementById('loginPass').value;
+  const res  = await api('login', { password: pass });
+  if (res.status === 'success') {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminShell').style.display  = 'flex';
+    loadAdminData();
+  } else {
+    const err = document.getElementById('loginErr');
+    err.textContent = res.message || 'رمز اشتباه است'; err.style.display = 'block';
+  }
+}
+document.getElementById('loginPass').addEventListener('keydown', e => e.key==='Enter' && doLogin());
+
+async function doLogout() {
+  await api('logout');
+  location.reload();
+}
+
+// ════════════════════════════════════════
+// DATA LOAD
+// ════════════════════════════════════════
+async function loadAdminData() {
+  const res = await api('get_admin_data');
+  if (res.status !== 'success') return;
+  const d = res.data;
+  STATE.orders       = d.orders       || [];
+  STATE.products     = d.products     || [];
+  STATE.bomRules     = d.bom_rules    || [];
+  STATE.customFields = d.custom_fields|| [];
+  STATE.allSettings  = d.all_settings || {};
+  STATE.customers    = d.customers    || [];
+  STATE.inventory    = d.inventory    || [];
+  STATE.logs         = d.logs         || [];
+
+  applySettingsToUI(d.all_settings);
+  renderDashboard(d.stats, d.inventory, d.procurement);
+  renderOrders();
+  renderCustomers();
+  renderInventory();
+  renderSettingsForms(d.all_settings);
+  renderProductsForms();
+  renderBomForms();
+  renderFlowForms(d.all_settings);
+  renderFieldBuilderForms();
+  renderLogs();
+
+  const pending = STATE.orders.filter(o => o.status==='در انتظار بررسی').length;
+  document.getElementById('pendingBadge').textContent = pending || '';
+  document.getElementById('pendingBadge').style.display = pending ? 'inline-flex' : 'none';
+}
+
+function getSetting(key) {
+  const s = STATE.allSettings[key];
+  return s ? s.value : null;
+}
+
+// ════════════════════════════════════════
+// SIDEBAR
+// ════════════════════════════════════════
+function toggleSidebar() {
+  document.getElementById('adminSidebar').classList.toggle('collapsed');
+}
+
+const panelTitles = {
+  dashboard:'داشبورد', orders:'مدیریت سفارشات', customers:'مشتریان',
+  inventory:'انبار', site_settings:'ظاهر و برند', pricing_settings:'قیمت‌گذاری',
+  products_settings:'محصولات', bom_settings:'BOM و صف تولید', flow_settings:'جریان سفارش',
+  field_builder:'فیلدهای سفارش', import_export:'Export / Import', logs:'لاگ سیستم',
+};
+
+function switchPanel(name) {
+  document.querySelectorAll('.admin-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
+  document.getElementById('panel-' + name)?.classList.add('active');
+  event.currentTarget?.classList.add('active');
+  document.getElementById('topbarTitle').textContent = panelTitles[name] || name;
+}
+
+// ════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════
+function renderDashboard(stats, inventory, procurement) {
+  const s = stats || {};
+  const statsCards = [
+    { icon:'💰', value: formatNum(s.revenue||0)+' ت', label:'درآمد کل', color:'#2563eb' },
+    { icon:'📦', value: s.total_orders||0, label:'سفارشات فعال', color:'#c59b4e' },
+    { icon:'📈', value: formatNum(s.profit||0)+' ت', label:'سود ناخالص', color:'#16a34a' },
+    { icon:'🏭', value: formatNum(s.cost||0)+' ت', label:'هزینه تمام شده', color:'#dc2626' },
+  ];
+  document.getElementById('statsGrid').innerHTML = statsCards.map(c => `
+    <div class="stat-card" style="--stat-color:${c.color}">
+      <div class="stat-icon">${c.icon}</div>
+      <div class="stat-value">${c.value}</div>
+      <div class="stat-label">${c.label}</div>
+    </div>`).join('');
+
+  document.getElementById('recentOrdersTbody').innerHTML =
+    STATE.orders.slice(0,8).map(o => `
+      <tr>
+        <td><code style="font-size:12px">${o.order_id}</code></td>
+        <td dir="ltr">${o.customer_phone||'-'}</td>
+        <td>${formatNum(o.grand_total_final||0)}</td>
+        <td>${statusBadge(o.status)}</td>
+      </tr>`).join('');
+
+  const low = (procurement||[]).filter(p=>p.deficit>0);
+  document.getElementById('lowStockList').innerHTML = low.length
+    ? low.map(p=>`<div style="display:flex;justify-content:space-between;padding:10px;background:#fef2f2;border-radius:8px;margin-bottom:8px;font-size:13px">
+        <span>${p.name}</span><span style="color:#dc2626;font-weight:700">کسری: ${p.deficit} ${p.unit}</span></div>`).join('')
+    : '<p style="color:var(--c-muted);font-size:13px">موجودی همه اقلام کافی است ✓</p>';
+}
+
+// ════════════════════════════════════════
+// ORDERS
+// ════════════════════════════════════════
+function renderOrders() {
+  const filter = document.getElementById('orderFilter')?.value || '';
+  const statuses = [...new Set(STATE.orders.map(o=>o.status))];
+
+  const sel = document.getElementById('orderFilter');
+  if (sel && sel.options.length <= 1) {
+    statuses.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+  }
+
+  const filtered = filter ? STATE.orders.filter(o=>o.status===filter) : STATE.orders;
+  document.getElementById('ordersTableBody').innerHTML = filtered.map(o => `
+    <tr>
+      <td><code style="font-size:12px">${o.order_id}</code></td>
+      <td>${o.project_name||'-'}</td>
+      <td dir="ltr" style="font-size:12px">${o.customer_phone||'-'}</td>
+      <td>${o.total_qty||0}</td>
+      <td>${formatNum(o.grand_total_final||0)}</td>
+      <td>${statusBadge(o.status)}</td>
+      <td>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center">
+          ${orderActions(o)}
+        </div>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--c-muted);padding:30px">سفارشی یافت نشد</td></tr>';
+}
+
+function orderActions(o) {
+  const statusActionMap = {
+    'در انتظار بررسی': [['approve','✅ تایید','a-btn-success'],['reject','❌ رد','a-btn-danger']],
+    'تایید شده':       [['production','🏭 تولید','a-btn-primary'],['revert_pending','↩ برگشت','a-btn-ghost']],
+    'در حال ساخت':    [['qc','🔍 QC','a-btn-primary'],['revert_approved','↩ برگشت','a-btn-ghost']],
+    'کنترل کیفیت':    [['ready','📦 آماده','a-btn-primary'],['revert_production','↩ برگشت','a-btn-ghost']],
+    'آماده ارسال':    [['complete','🎉 تکمیل','a-btn-success'],['revert_qc','↩ برگشت','a-btn-ghost']],
+    'تکمیل شده':      [],
+    'رد شده':         [['revert_pending','↩ بررسی مجدد','a-btn-ghost']],
+  };
+  const actions = statusActionMap[o.status] || [];
+  const btns = actions.map(([act,label,cls]) =>
+    `<button class="a-btn ${cls} a-btn-sm" onclick="changeStatus('${o.order_id}','${act}')">${label}</button>`
+  );
+  const printBtns = `
+    <button class="a-btn a-btn-ghost a-btn-sm" onclick="printDoc('proforma','${o.order_id}')">📄 پیش‌فاکتور</button>
+    <button class="a-btn a-btn-ghost a-btn-sm" onclick="printDoc('workshop','${o.order_id}')">🔧 کارگاه</button>
+    <button class="a-btn a-btn-ghost a-btn-sm" onclick="printDoc('label','${o.order_id}')">🏷 لیبل</button>`;
+  return [...btns, printBtns].join('');
+}
+
+async function changeStatus(orderId, action) {
+  const res = await api('update_order_status', { order_id: orderId, status_action: action });
+  if (res.status === 'success') { toast('وضعیت سفارش تغییر کرد','success'); loadAdminData(); }
+  else toast(res.message || 'خطا', 'error');
+}
+
+// ════════════════════════════════════════
+// CUSTOMERS
+// ════════════════════════════════════════
+function renderCustomers() {
+  document.getElementById('customersBody').innerHTML = STATE.customers.map(c => `
+    <tr>
+      <td dir="ltr">${c.phone}</td>
+      <td>${c.name}</td>
+      <td>${c.category}</td>
+      <td>${formatNum(c.wallet_balance||0)} ت</td>
+      <td>${formatNum(c.total_purchases||0)} ت</td>
+      <td>
+        <button class="a-btn a-btn-gold a-btn-sm" onclick="showWalletModal('${c.phone}')">کیف پول</button>
+      </td>
+    </tr>`).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--c-muted);padding:20px">مشتری‌ای ثبت نشده</td></tr>';
+}
+
+async function showWalletModal(phone) {
+  const amount = prompt(`مبلغ (تومان) برای ${phone}:`);
+  if (!amount || isNaN(+amount)) return;
+  const type   = confirm('شارژ کنید؟ (لغو = کسر)') ? 'add' : 'deduct';
+  const reason = prompt('دلیل:', 'عملیات مالی') || 'عملیات مالی';
+  const res = await api('adjust_wallet', { phone, type, amount: +amount, reason });
+  if (res.status==='success') { toast(res.message,'success'); loadAdminData(); }
+  else toast(res.message,'error');
+}
+
+// ════════════════════════════════════════
+// INVENTORY
+// ════════════════════════════════════════
+function renderInventory() {
+  document.getElementById('inventoryBody').innerHTML = STATE.inventory.map(it => `
+    <tr>
+      <td style="font-size:11px;color:var(--c-muted)">${it.item_id}</td>
+      <td>${it.name}</td>
+      <td>${it.unit}</td>
+      <td style="font-weight:700;color:${it.stock<=it.min_stock?'#dc2626':'#16a34a'}">${it.stock}</td>
+      <td>${it.min_stock}</td>
+      <td>${it.location}</td>
+      <td>
+        <input type="number" id="inv_${it.item_id}" placeholder="±" style="width:70px;padding:6px;border:1px solid var(--c-border);border-radius:8px;font-size:12px;text-align:center">
+        <button class="a-btn a-btn-gold a-btn-sm" onclick="updateInv('${it.item_id}','${it.min_stock}','${it.location}')">اعمال</button>
+      </td>
+    </tr>`).join('');
+}
+
+async function updateInv(id, minStock, location) {
+  const delta = parseFloat(document.getElementById('inv_'+id)?.value || 0);
+  if (!delta) return toast('مقداری وارد کنید','warning');
+  const res = await api('update_inventory', { item_id:id, qty_change:delta, min_stock:+minStock, location });
+  if (res.status==='success') { toast('انبار بروزرسانی شد','success'); loadAdminData(); }
+  else toast(res.message,'error');
+}
+
+// ════════════════════════════════════════
+// SETTINGS FORMS
+// ════════════════════════════════════════
+function applySettingsToUI(settings) {
+  const get = k => { const s=settings[k]; return s ? s.value : null; };
+  const brandName = get('site.brand_name') || 'لاینر لایت';
+  document.getElementById('sbBrandName').textContent = brandName;
+  document.title = 'پنل مدیریت | ' + brandName;
+
+  const colors = get('site.colors') || {};
+  if (colors.primary) document.documentElement.style.setProperty('--brand-primary', colors.primary);
+  if (colors.gold)    document.documentElement.style.setProperty('--brand-gold',    colors.gold);
+  const theme = get('admin.theme') || {};
+  if (theme.sidebar_color) document.documentElement.style.setProperty('--sb-bg',    theme.sidebar_color);
+  if (theme.accent)        document.documentElement.style.setProperty('--sb-accent', theme.accent);
+}
+
+function renderSettingsForms(settings) {
+  const get = k => { const s=settings[k]; return s ? s.value : null; };
+  // Brand
+  setVal('cfg_brand_name',  get('site.brand_name')    || '');
+  setVal('cfg_contact',     get('site.contact_phone') || '');
+  setVal('cfg_footer',      get('site.footer_text')   || '');
+  setVal('cfg_logo',        get('site.brand_logo')    || '');
+  // Colors
+  const colors = get('site.colors') || {};
+  setVal('color_primary', colors.primary || '#2563eb');
+  setVal('color_gold',    colors.gold    || '#c59b4e');
+  setVal('color_bg',      colors.bg      || '#f4f7fb');
+  setVal('color_text',    colors.text    || '#0f172a');
+  setVal('color_success', colors.success || '#16a34a');
+  setVal('color_danger',  colors.danger  || '#dc2626');
+  const theme = get('admin.theme') || {};
+  setVal('color_sidebar', theme.sidebar_color || '#0f172a');
+  setVal('color_accent',  theme.accent        || '#c59b4e');
+  updateColorPreview();
+  // Pricing
+  setVal('cfg_free_wire', get('pricing.wire_free_cm')     || 20);
+  setVal('cfg_wire_rate', get('pricing.wire_rate_per_cm') || 400);
+  setVal('cfg_min_len',   get('pricing.min_length_cm')    || 50);
+  const tiers = get('pricing.tiers') || [];
+  document.getElementById('tiersContainer').innerHTML = '';
+  tiers.forEach(t => addTierRow(t));
+  // Queue
+  setVal('cfg_daily_cap',    get('queue.daily_capacity') || 30);
+  setVal('cfg_buffer_days',  get('queue.buffer_days')    || 4);
+  setVal('cfg_wastage',      get('wastage_percent')      || 5);
+}
+
+function updateColorPreview() {
+  const p = v('color_primary'), g = v('color_gold'), s = v('color_success'), d = v('color_danger'), bg = v('color_bg');
+  document.getElementById('prev_primary').style.background = p;
+  document.getElementById('prev_gold').style.background    = g;
+  document.getElementById('prev_success').style.background = s;
+  document.getElementById('prev_danger').style.background  = d;
+  document.getElementById('prev_bg').style.background      = bg;
+}
+
+async function saveSiteSettings() {
+  const payload = {
+    'site.brand_name':   v('cfg_brand_name'),
+    'site.contact_phone':v('cfg_contact'),
+    'site.footer_text':  v('cfg_footer'),
+    'site.brand_logo':   v('cfg_logo'),
+    'site.colors': { primary:v('color_primary'), gold:v('color_gold'), bg:v('color_bg'), text:v('color_text'), success:v('color_success'), danger:v('color_danger') },
+    'admin.theme': { sidebar_color:v('color_sidebar'), accent:v('color_accent') },
+  };
+  const res = await api('save_site_settings', payload);
+  if (res.status==='success') { toast('تنظیمات برند ذخیره شد','success'); applySettingsToUI(STATE.allSettings); }
+  else toast(res.message,'error');
+}
+
+// Tiers
+function addTierRow(t={}) {
+  const row = document.createElement('div');
+  row.className = 'tier-row';
+  row.innerHTML = `
+    <input type="number" class="tier-min" value="${t.min||''}" placeholder="از">
+    <input type="number" class="tier-max" value="${t.max||''}" placeholder="تا">
+    <input type="number" class="tier-disc" value="${t.discount||''}" placeholder="٪">
+    <button class="a-btn a-btn-danger a-btn-sm" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('tiersContainer').appendChild(row);
+}
+
+async function savePricingSettings() {
+  const tiers = [...document.querySelectorAll('#tiersContainer .tier-row')].map(r => ({
+    min:      +r.querySelector('.tier-min').value,
+    max:      +r.querySelector('.tier-max').value,
+    discount: +r.querySelector('.tier-disc').value,
+  }));
+  const res = await api('save_pricing', {
+    'pricing.tiers':          tiers,
+    'pricing.wire_free_cm':   +v('cfg_free_wire'),
+    'pricing.wire_rate_per_cm': +v('cfg_wire_rate'),
+    'pricing.min_length_cm':  +v('cfg_min_len'),
+  });
+  if (res.status==='success') toast('قیمت‌گذاری ذخیره شد','success');
+  else toast(res.message,'error');
+}
+
+// Products
+function renderProductsForms() {
+  const container = document.getElementById('productsSettingsContainer');
+  container.innerHTML = '';
+  STATE.products.forEach(p => addProductRow(p));
+}
+
+function addProductRow(p={}) {
+  const id = p.id || 'P' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'field-builder-item';
+  div.style.flexDirection = 'column';
+  div.innerHTML = `
+    <div class="fb-inputs" style="width:100%">
+      <input class="p-id"    value="${p.id||''}"          placeholder="شناسه (مثال: L1)" style="width:80px">
+      <input class="p-title" value="${p.title||''}"       placeholder="نام مدل" style="flex:1">
+      <input class="p-price" value="${p.price||''}"       placeholder="قیمت (تومان)" type="number" style="width:140px">
+      <input class="p-cost"  value="${p.cost||0}"         placeholder="هزینه تمام شده" type="number" style="width:140px">
+      <input class="p-image" value="${p.image||''}"       placeholder="مسیر تصویر" style="flex:1">
+    </div>
+    <div class="fb-inputs" style="width:100%;margin-top:8px">
+      <input class="p-colors" value="${Array.isArray(p.allowed_colors)?p.allowed_colors.join('،'):(p.allowed_colors||'مشکی،سفید')}" placeholder="رنگ‌ها (با ، جدا کنید)" style="flex:1">
+      <input class="p-lights" value="${Array.isArray(p.allowed_lights)?p.allowed_lights.join('،'):(p.allowed_lights||'آفتابی')}" placeholder="دماهای نور (با ، جدا کنید)" style="flex:1">
+      <input class="p-desc"   value="${p.description||p.desc||''}" placeholder="توضیحات" style="flex:2">
+      <button class="a-btn a-btn-danger a-btn-sm" onclick="this.closest('.field-builder-item').remove()">حذف</button>
+    </div>`;
+  document.getElementById('productsSettingsContainer').appendChild(div);
+}
+
+async function saveProductsSettings() {
+  const rows = [...document.querySelectorAll('#productsSettingsContainer .field-builder-item')].map(r => ({
+    id:             r.querySelector('.p-id').value.trim(),
+    title:          r.querySelector('.p-title').value.trim(),
+    price:          +r.querySelector('.p-price').value,
+    cost:           +r.querySelector('.p-cost').value,
+    image:          r.querySelector('.p-image').value.trim(),
+    allowed_colors: r.querySelector('.p-colors').value.trim(),
+    allowed_lights: r.querySelector('.p-lights').value.trim(),
+    desc:           r.querySelector('.p-desc').value.trim(),
+  })).filter(r => r.id && r.title);
+  const res = await api('save_products', { products: rows });
+  if (res.status==='success') { toast('محصولات ذخیره شد','success'); loadAdminData(); }
+  else toast(res.message,'error');
+}
+
+// BOM
+function renderBomForms() {
+  document.getElementById('bomContainer').innerHTML = '';
+  STATE.bomRules.forEach(r => addBomRow(r));
+}
+
+function addBomRow(r={}) {
+  const div = document.createElement('div');
+  div.className = 'field-builder-item';
+  div.innerHTML = `
+    <div class="fb-inputs" style="width:100%">
+      <input class="b-id"    value="${r.id||''}"     placeholder="شناسه" style="width:80px">
+      <input class="b-name"  value="${r.name||''}"   placeholder="نام قطعه" style="flex:1">
+      <input class="b-unit"  value="${r.unit||''}"   placeholder="واحد" style="width:70px">
+      <input class="b-price" value="${r.price||0}"   placeholder="قیمت" type="number" style="width:100px">
+      <select class="b-base" style="width:100px">
+        ${['meter','piece','branch','order'].map(t=>`<option value="${t}" ${(r.base||r.base_type)===t?'selected':''}>${{meter:'متر',piece:'قطعه',branch:'شاخه',order:'سفارش'}[t]}</option>`).join('')}
+      </select>
+      <input class="b-rate"    value="${r.rate||1}"    placeholder="ضریب" type="number" step="0.01" style="width:70px">
+      <input class="b-divider" value="${r.divider||1}" placeholder="مقسوم‌علیه" type="number" step="0.01" style="width:80px">
+      <button class="a-btn a-btn-danger a-btn-sm" onclick="this.closest('.field-builder-item').remove()">✕</button>
+    </div>`;
+  document.getElementById('bomContainer').appendChild(div);
+}
+
+async function saveBomSettings() {
+  const rules = [...document.querySelectorAll('#bomContainer .field-builder-item')].map(r => ({
+    id:      r.querySelector('.b-id').value.trim(),
+    name:    r.querySelector('.b-name').value.trim(),
+    unit:    r.querySelector('.b-unit').value.trim(),
+    price:   +r.querySelector('.b-price').value,
+    base:    r.querySelector('.b-base').value,
+    rate:    +r.querySelector('.b-rate').value,
+    divider: +r.querySelector('.b-divider').value,
+    products:['ALL'],
+  })).filter(r => r.id && r.name);
+  const res = await api('save_bom_and_queue', { bom_rules: rules });
+  if (res.status==='success') toast('BOM ذخیره شد','success');
+  else toast(res.message,'error');
+}
+
+async function saveQueueSettings() {
+  const res = await api('save_bom_and_queue', {
+    queue:           { daily_capacity:+v('cfg_daily_cap'), buffer_days:+v('cfg_buffer_days') },
+    wastage_percent: +v('cfg_wastage'),
+  });
+  if (res.status==='success') toast('تنظیمات صف ذخیره شد','success');
+  else toast(res.message,'error');
+}
+
+// Flow
+function renderFlowForms(settings) {
+  const get = k => { const s=settings[k]; return s?s.value:null; };
+  const statuses = get('order_flow.statuses') || [];
+  document.getElementById('flowStatusContainer').innerHTML = '';
+  statuses.forEach(s => addFlowStatus(s));
+  document.getElementById('cfg_require_phone').checked = !!get('order_flow.require_phone');
+}
+
+function addFlowStatus(s='') {
+  const div = document.createElement('div');
+  div.className = 'field-builder-item';
+  div.innerHTML = `
+    <span class="drag-handle">⠿</span>
+    <input type="text" value="${s}" placeholder="نام مرحله" style="flex:1;border:1px solid var(--c-border);border-radius:8px;padding:8px 12px;font-family:inherit">
+    <button class="a-btn a-btn-danger a-btn-sm" onclick="this.closest('.field-builder-item').remove()">✕</button>`;
+  document.getElementById('flowStatusContainer').appendChild(div);
+}
+
+async function saveFlowSettings() {
+  const statuses = [...document.querySelectorAll('#flowStatusContainer input[type=text]')]
+    .map(i=>i.value.trim()).filter(Boolean);
+  const res = await api('save_order_flow', {
+    statuses,
+    require_phone: document.getElementById('cfg_require_phone').checked ? 1 : 0,
+  });
+  if (res.status==='success') toast('جریان سفارش ذخیره شد','success');
+  else toast(res.message,'error');
+}
+
+// Field Builder
+function renderFieldBuilderForms() {
+  document.getElementById('fieldBuilderContainer').innerHTML = '';
+  STATE.customFields.forEach(f => addCustomField(f));
+  renderFieldPreview();
+}
+
+function addCustomField(f={}) {
+  const id = f.id || 'field_' + Date.now();
+  const div = document.createElement('div');
+  div.className = 'field-builder-item';
+  div.style.flexDirection = 'column';
+  div.innerHTML = `
+    <div class="fb-inputs" style="width:100%">
+      <input class="cf-id"    value="${f.id||id}"           placeholder="شناسه" style="width:100px">
+      <input class="cf-label" value="${f.label||''}"        placeholder="برچسب فیلد" style="flex:1">
+      <select class="cf-type" onchange="renderFieldPreview()">
+        ${['text','number','select','textarea','checkbox'].map(t=>
+          `<option value="${t}" ${f.field_type===t?'selected':''}>${{text:'متن',number:'عدد',select:'لیست',textarea:'متن بلند',checkbox:'چک‌باکس'}[t]}</option>`
+        ).join('')}
+      </select>
+      <label class="a-toggle" style="margin:0 8px">
+        <input type="checkbox" class="cf-required" ${f.required?'checked':''} onchange="renderFieldPreview()">
+        <div class="a-toggle-track"><div class="a-toggle-thumb"></div></div>
+        <span class="a-toggle-label" style="font-size:11px">اجباری</span>
+      </label>
+      <label class="a-toggle" style="margin:0 8px">
+        <input type="checkbox" class="cf-label-print" ${f.show_on_label?'checked':''}>
+        <div class="a-toggle-track"><div class="a-toggle-thumb"></div></div>
+        <span class="a-toggle-label" style="font-size:11px">روی لیبل</span>
+      </label>
+      <button class="a-btn a-btn-danger a-btn-sm" onclick="this.closest('.field-builder-item').remove();renderFieldPreview()">✕</button>
+    </div>
+    <div class="fb-inputs" style="width:100%;margin-top:8px">
+      <input class="cf-placeholder" value="${f.placeholder||''}" placeholder="placeholder" style="flex:1">
+      <input class="cf-options" value="${f.options_json?JSON.parse(f.options_json||'[]').join('،'):''}" placeholder="گزینه‌ها (برای select، با ، جدا کنید)" style="flex:2">
+    </div>`;
+  document.getElementById('fieldBuilderContainer').appendChild(div);
+  div.querySelectorAll('input,select').forEach(el => el.addEventListener('input', renderFieldPreview));
+  renderFieldPreview();
+}
+
+function renderFieldPreview() {
+  const items = [...document.querySelectorAll('#fieldBuilderContainer .field-builder-item')];
+  if (!items.length) {
+    document.getElementById('fieldPreview').innerHTML = '<p style="color:var(--c-muted);font-size:13px">فیلدی اضافه نشده</p>';
+    return;
+  }
+  document.getElementById('fieldPreview').innerHTML = items.map(item => {
+    const label = item.querySelector('.cf-label')?.value || 'فیلد';
+    const type  = item.querySelector('.cf-type')?.value  || 'text';
+    const ph    = item.querySelector('.cf-placeholder')?.value || '';
+    const req   = item.querySelector('.cf-required')?.checked ? ' *' : '';
+    const opts  = (item.querySelector('.cf-options')?.value||'').split('،').filter(Boolean);
+
+    let input = '';
+    if (type==='select')   input = `<select style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit"><option>انتخاب کنید</option>${opts.map(o=>`<option>${o}</option>`).join('')}</select>`;
+    else if (type==='textarea') input = `<textarea rows="3" placeholder="${ph}" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit;resize:vertical"></textarea>`;
+    else if (type==='checkbox') input = `<label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox"> <span>${label}</span></label>`;
+    else input = `<input type="${type}" placeholder="${ph}" style="width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font-family:inherit">`;
+
+    return `<div style="margin-bottom:14px">
+      ${type!=='checkbox'?`<label style="display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;text-transform:uppercase">${label}${req}</label>`:''}
+      ${input}
+    </div>`;
+  }).join('');
+}
+
+async function saveCustomFields() {
+  const fields = [...document.querySelectorAll('#fieldBuilderContainer .field-builder-item')].map((item,i) => {
+    const opts = (item.querySelector('.cf-options')?.value||'').split('،').filter(Boolean);
+    return {
+      id:           item.querySelector('.cf-id')?.value.trim()    || 'field_'+(i+1),
+      label:        item.querySelector('.cf-label')?.value.trim() || 'فیلد',
+      field_type:   item.querySelector('.cf-type')?.value         || 'text',
+      placeholder:  item.querySelector('.cf-placeholder')?.value  || '',
+      options_json: opts.length ? JSON.stringify(opts) : null,
+      required:     item.querySelector('.cf-required')?.checked   ? 1 : 0,
+      show_on_label:item.querySelector('.cf-label-print')?.checked? 1 : 0,
+    };
+  });
+  const res = await api('save_custom_fields', { fields });
+  if (res.status==='success') { toast('فیلدهای سفارش ذخیره شد','success'); loadAdminData(); }
+  else toast(res.message,'error');
+}
+
+// ════════════════════════════════════════
+// EXPORT / IMPORT
+// ════════════════════════════════════════
+function doExport() {
+  window.open('api/api.php?action=export_settings','_blank');
+}
+
+async function doImport() {
+  const file = document.getElementById('importFile').files[0];
+  if (!file) { toast('فایل انتخاب نشده','warning'); return; }
+  if (!confirm('تمام تنظیمات فعلی جایگزین می‌شوند. ادامه می‌دهید؟')) return;
+  const text = await file.text();
+  const data = JSON.parse(text);
+  const res = await api('import_settings', { data });
+  if (res.status==='success') { toast(res.message||'وارد شد','success'); loadAdminData(); }
+  else toast(res.message,'error');
+}
+
+// ════════════════════════════════════════
+// LOGS
+// ════════════════════════════════════════
+function renderLogs() {
+  document.getElementById('logsBody').innerHTML = STATE.logs.slice(0,100).map(l => `
+    <tr>
+      <td><span class="a-badge a-badge-pending" style="font-size:10px">${l.log_type}</span></td>
+      <td dir="ltr" style="font-size:11px;color:var(--c-muted)">${l.ip_address}</td>
+      <td style="font-size:12px;text-align:right;max-width:300px;overflow:hidden;text-overflow:ellipsis">${l.details}</td>
+      <td style="font-size:11px;color:var(--c-muted)">${l.created_at}</td>
+    </tr>`).join('');
+}
+
+// ════════════════════════════════════════
+// PRINT
+// ════════════════════════════════════════
+function printDoc(type, id) {
+  const url = `api/api.php?action=print&print=${type}&id=${id}`;
+  window.open(url, '_blank', 'width=900,height=700');
+}
+
+// ════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════
+async function api(action, payload={}) {
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...payload }),
+    });
+    return res.json();
+  } catch { return { status: 'error', message: 'خطای شبکه' }; }
+}
+
+function toast(msg, type='success') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${{success:'✅',error:'❌',warning:'⚠️'}[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function statusBadge(status) {
+  const map = {
+    'در انتظار بررسی':'pending','تایید شده':'approved','در حال ساخت':'prod',
+    'کنترل کیفیت':'qc','آماده ارسال':'ready','تکمیل شده':'done','رد شده':'rejected',
+  };
+  return `<span class="a-badge a-badge-${map[status]||'pending'}">${status}</span>`;
+}
+
+const setVal = (id, val) => { const el=document.getElementById(id); if(el) el.value=val; };
+const v      = id => document.getElementById(id)?.value || '';
+const formatNum = n => Number(n||0).toLocaleString('fa-IR');
+</script>
+</body>
+</html>
