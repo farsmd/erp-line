@@ -6,7 +6,7 @@
 session_start();
 require_once dirname(__DIR__) . '/engine/Engine.php';
 require_once dirname(__DIR__) . '/engine/OrderService.php';
-
+require_once dirname(__DIR__) . '/engine/session-config.php';
 $db      = new LinerLightEngine();
 $service = new OrderService($db);
 
