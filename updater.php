@@ -2,7 +2,7 @@
 /**
  * updater.php — بررسی و نصب آپدیت GitHub با امکان انتخاب Backup
  */
-session_start();
+require_once __DIR__ . '/engine/session-config.php';
 
 $config = [
     'owner' => 'farsmd',
